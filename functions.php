@@ -25,3 +25,42 @@ function create_custom_wp_role() {
 
 // Hook into the 'after_setup_theme' action to ensure the role is created
 add_action('after_setup_theme', 'create_custom_wp_role');
+
+function custom_search_script() {
+    if (is_search() || is_front_page() || is_home()) { // Adjust conditions as needed
+        ?>
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                const searchInput = document.querySelector('input[name="s"]');
+                const form = searchInput.closest('form');
+
+                function debounce(func, wait) {
+                    let timeout;
+                    return function(...args) {
+                        const later = () => {
+                            clearTimeout(timeout);
+                            func(...args);
+                        };
+                        clearTimeout(timeout);
+                        timeout = setTimeout(later, wait);
+                    };
+                }
+
+                function handleInput() {
+                    const keywords = searchInput.value.trim().split(/\s+/);
+                    if (keywords.length >= 3) {
+                        form.submit();
+                    }
+                }
+
+                const debouncedHandleInput = debounce(handleInput, 300); // 300ms debounce time
+
+                if (searchInput && form) {
+                    searchInput.addEventListener('input', debouncedHandleInput);
+                }
+            });
+        </script>
+        <?php
+    }
+}
+add_action('wp_footer', 'custom_search_script');
