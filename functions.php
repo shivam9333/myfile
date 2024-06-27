@@ -109,4 +109,21 @@ function custom_search_form() {
 }
 add_shortcode('custom_search', 'custom_search_form');
 
+function get_country_from_ip($ip) {
+    $url = 'http://ip-api.com/json/' . $ip;
+    $response = wp_remote_get($url);
+
+    if (is_wp_error($response)) {
+        return 'Unable to retrieve data';
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+
+    if ($data['status'] === 'success') {
+        return $data['country'];
+    } else {
+        return 'Unable to retrieve country';
+    }
+}
 
