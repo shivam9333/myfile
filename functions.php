@@ -64,41 +64,49 @@ function custom_search_script() {
     }
 }
 add_action('wp_footer', 'custom_search_script');
-<form role="search" method="get" id="searchform" class="searchform" action="<?php echo esc_url(home_url('/')); ?>">
-    <div>
-        <label class="screen-reader-text" for="s"><?php echo _x('Search for:', 'label'); ?></label>
-        <input type="text" value="<?php echo get_search_query(); ?>" name="s" id="s" />
-    </div>
-    <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.querySelector('#s');
-            const form = document.querySelector('#searchform');
+function custom_search_form() {
+    ob_start();
+    ?>
+    <form role="search" method="get" id="searchform" class="searchform" action="<?php echo esc_url(home_url('/')); ?>">
+        <div>
+            <label class="screen-reader-text" for="s"><?php echo _x('Search for:', 'label'); ?></label>
+            <input type="text" value="<?php echo get_search_query(); ?>" name="s" id="s" />
+        </div>
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                const searchInput = document.querySelector('#s');
+                const form = document.querySelector('#searchform');
 
-            function debounce(func, wait) {
-                let timeout;
-                return function(...args) {
-                    const later = () => {
+                function debounce(func, wait) {
+                    let timeout;
+                    return function(...args) {
+                        const later = () => {
+                            clearTimeout(timeout);
+                            func(...args);
+                        };
                         clearTimeout(timeout);
-                        func(...args);
+                        timeout = setTimeout(later, wait);
                     };
-                    clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
-                };
-            }
-
-            function handleInput() {
-                const keywords = searchInput.value.trim().split(/\s+/);
-                if (keywords.length >= 3) {
-                    form.submit();
                 }
-            }
 
-            const debouncedHandleInput = debounce(handleInput, 300); // 300ms debounce time
+                function handleInput() {
+                    const keywords = searchInput.value.trim().split(/\s+/);
+                    if (keywords.length >= 3) {
+                        form.submit();
+                    }
+                }
 
-            if (searchInput && form) {
-                searchInput.addEventListener('input', debouncedHandleInput);
-            }
-        });
-    </script>
-</form>
+                const debouncedHandleInput = debounce(handleInput, 300); // 300ms debounce time
+
+                if (searchInput && form) {
+                    searchInput.addEventListener('input', debouncedHandleInput);
+                }
+            });
+        </script>
+    </form>
+    <?php
+    return ob_get_clean();
+}
+add_shortcode('custom_search', 'custom_search_form');
+
 
